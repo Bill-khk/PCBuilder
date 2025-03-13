@@ -53,7 +53,7 @@ class GPU:
 
 class RAM:
     def __init__(self):
-        self.title = 'Memory'
+        self.title = 'RAM'
         self.name = ''
         self.DDRtype = 1
         self.speed = 1
@@ -65,7 +65,7 @@ class RAM:
 
 class Storage:
     def __init__(self):
-        self.title = 'Storage'
+        self.title = 'Memory'
         self.name = str
         self.capacity = int
         self.type = str

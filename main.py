@@ -10,6 +10,7 @@ from fake_useragent import UserAgent
 from selenium_stealth import stealth
 import pandas as pd
 import xlwings as xw
+from computer import Computer
 
 comp_dict = {
     'cpu_tab': {
@@ -44,7 +45,7 @@ comp_dict = {
         'value': []
     },
     'power_tab': {
-        'Title': 'Power Supply',
+        'Title': 'Power supply',
         'Init_add': 'P1',
         'Parameters': ['Name', 'Type', 'Wattage', 'Length', 'Price', 'Link'],
         'value': []
@@ -144,45 +145,64 @@ def get_CPU_data():
 
 
 # Get the min configuration from the file
-# TODO Change get_min_para() to avoid having to open the Book for all min component
-def get_min_para(comp):
-    # link component name with dict element
-    comp_name = ''
-    for element in comp_dict:
-        if comp_dict[element]['Title'] == comp:
-            comp_name = element
+def get_min_para():
+    # HERE
+    min_conf = Computer()  # Create a computer object to store the para
 
-    print(comp_name)
-    if comp_name != '':
-        wb = xw.Book("Files/min_conf.xlsx")
-        ws = wb.sheets['Overview']
-        para = [value for value in comp_dict['cpu_tab']['Parameters']]
-        para = para[:len(para) - 1]  # Remove link
+    # Open the XLS file only once
+    wb = xw.Book("Files/min_conf.xlsx")
+    ws = wb.sheets['Overview']
 
-        # get the coordinate of parameter
-        x = chr(ord(comp_dict[comp_name]['Init_add'][:1]) + 1)
-        y = str(int(comp_dict[comp_name]['Init_add'][1:]) + 1)
-        para_value = []
-        for value in para:
-            para_value.append(ws.range(x + y).value)
-            y = str(int(y) + 1)
+    for pc_comp in vars(min_conf):  # Filling all component with the Computer object
+        try:
+            # Get the component title
+            # print(getattr(min_conf, object).title)
+            comp = getattr(min_conf, pc_comp).title
+            # Link with the component name in dict element
+            comp_name = ''
+            for element in comp_dict:
+                if comp_dict[element]['Title'] == comp:
+                    comp_name = element
+            print(comp_name)  # Element got in the dict element
+            # If comp_name is still empty, could find the match between computer component and dict element
+            if comp_name != '':
+                # Get the list of component's parameters as per the dict element
+                para = [value for value in comp_dict[comp_name]['Parameters']]
+                para = para[:len(para) - 1]  # Remove link
 
-        min_para = [(name, value) for name, value in zip(para, para_value)]
-        wb.close()
-        return min_para
-    else:
-        print('Cant find component name')
-        return None
+                # get the coordinate of parameter
+                x = chr(ord(comp_dict[comp_name]['Init_add'][:1]) + 1)
+                y = str(int(comp_dict[comp_name]['Init_add'][1:]) + 1)
+
+                # Store the values retrieved
+                para_value = []
+                for value in para:
+                    para_value.append(ws.range(x + y).value)
+                    y = str(int(y) + 1)
+                # Associating the name of the parameters with its vales
+                min_para = [(name, value) for name, value in zip(para, para_value)]
+                print(min_para)
+
+                # TODO Put the retrieved values in the min_conf object
 
 
-min_para_CPU = get_min_para('Processor')
-print(min_para_CPU)
-min_para_GPU = get_min_para('Graphic card')
-print(min_para_GPU)
+            else:
+                print(f'Cant find {comp} in dict element')
+                return None
 
+        except:
+            print(f'{pc_comp} is not a component')
+
+    wb.close()
+    return min_conf
+
+
+# Create a computer object with min para in XLS file
+min_conf = get_min_para()
 
 # Filter the cpu_info with min configuration
 # TODO
+
 
 # cpu_info = get_CPU_data()
 #workbook.close()
