@@ -4,7 +4,7 @@ class Computer:
         self.cpu = CPU()
         self.gpu = GPU()
         self.ram = RAM()
-        self.storage = Storage()
+        self.storage = Memory()
         self.power = Power()
         self.case = Case()
         self.motherboard = Motherboard()
@@ -46,7 +46,7 @@ class GPU:
         self.memoryType = 1
         self.clock_speed = 1
         self.interface = ''
-        self.Cooling = 0
+        self.cooling = 0
         self.price = 0
         self.link = ''
 
@@ -63,7 +63,7 @@ class RAM:
         self.link = ''
 
 
-class Storage:
+class Memory:
     def __init__(self):
         self.title = 'Memory'
         self.name = str

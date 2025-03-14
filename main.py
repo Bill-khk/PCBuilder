@@ -16,50 +16,50 @@ comp_dict = {
     'cpu_tab': {
         'Title': 'Processor',
         'Init_add': 'A5',
-        'Parameters': ['Name', 'Socket', 'Core', 'Clock', 'Boost', 'Thread', 'Price', 'Link'],
+        'Parameters': ['name', 'socket', 'core', 'clock_speed', 'boost_speed', 'thread', 'price', 'link'],
         'value': []
     },
     'mb_tab': {
         'Title': 'Motherboard',
         'Init_add': 'A15',
-        'Parameters': ['Name', 'Socket', 'Max Memory', 'Memory Slot', 'Memory type', 'PCIe', 'USB2.0', 'USB  3.2',
+        'Parameters': ['name', 'socket', 'maxMemory', 'slotMemory', 'DDRtype', 'PCIe', 'USB2', 'USB3',
                        'Price', 'Link'],
         'value': []
     },
     'gpu_tab': {
         'Title': 'Graphic card',
         'Init_add': 'A28',
-        'Parameters': ['Name', 'Memory', 'Memory Type', 'Core clock', 'Interface', 'Cooling', 'Price', 'Link'],
+        'Parameters': ['name', 'memory', 'memoryType', 'clock_speed', 'interface', 'cooling', 'price', 'link'],
         'value': []
     },
     'ram_tab': {
         'Title': 'RAM',
         'Init_add': 'G1',
-        'Parameters': ['Name', 'Type', 'Speed', 'Module', 'Price', 'Link'],
+        'Parameters': ['name', 'DDRtype', 'speed', 'module_nb', 'price', 'link'],
         'value': []
     },
     'memory_tab': {
         'Title': 'Memory',
         'Init_add': 'L1',
-        'Parameters': ['Name', 'Capacity', 'Type', 'NVME', 'Price', 'Link'],
+        'Parameters': ['name', 'capacity', 'type', 'NVME', 'price', 'link'],
         'value': []
     },
     'power_tab': {
         'Title': 'Power supply',
         'Init_add': 'P1',
-        'Parameters': ['Name', 'Type', 'Wattage', 'Length', 'Price', 'Link'],
+        'Parameters': ['name', 'type', 'wattage', 'length', 'price', 'link'],
         'value': []
     },
     'case_tab': {
         'Title': 'Case',
         'Init_add': 'T1',
-        'Parameters': ['Name', 'Dimensions', 'Price', 'Link'],
+        'Parameters': ['name', 'dimensions', 'price', 'link'],
         'value': []
     },
     'component': {
         'Title': 'Component',
         'Init_add': 'U8',
-        'Parameters': ['Processor', 'Motherboard', 'Graphic card', 'RAM', 'Memory', 'Power Supply', 'Case'],
+        'Parameters': ['Processor', 'Motherboard', 'Graphic card', 'RAM', 'Memory', 'Power supply', 'Case'],
         'value': []
     }}
 
@@ -163,7 +163,7 @@ def get_min_para():
             for element in comp_dict:
                 if comp_dict[element]['Title'] == comp:
                     comp_name = element
-            print(comp_name)  # Element got in the dict element
+            # print(comp_name)  # Element got in the dict element
             # If comp_name is still empty, could find the match between computer component and dict element
             if comp_name != '':
                 # Get the list of component's parameters as per the dict element
@@ -183,16 +183,21 @@ def get_min_para():
                 min_para = [(name, value) for name, value in zip(para, para_value)]
                 print(min_para)
 
-                # TODO Put the retrieved values in the min_conf object
-
+                # Put the min_para in min_conf
+                for attr in dir(getattr(min_conf, pc_comp)):
+                    if not attr.startswith("__") and attr not in ["title", "price", "link"] and type(attr) != bool:
+                        for key, value in min_para:
+                            if key == attr:
+                                getattr(min_conf, pc_comp).attr = value
 
             else:
                 print(f'Cant find {comp} in dict element')
                 return None
 
-        except:
+        except AttributeError:
             print(f'{pc_comp} is not a component')
 
+    print(min_conf)
     wb.close()
     return min_conf
 
@@ -200,9 +205,8 @@ def get_min_para():
 # Create a computer object with min para in XLS file
 min_conf = get_min_para()
 
-# Filter the cpu_info with min configuration
-# TODO
+# TODO Filter the retrieved info int cpu_info with min configuration
 
-
-# cpu_info = get_CPU_data()
+cpu_info = get_CPU_data()
+print(cpu_info)
 #workbook.close()
