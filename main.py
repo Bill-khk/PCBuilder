@@ -2,7 +2,9 @@ import time
 from datetime import date
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
+from selenium.common.exceptions import ElementClickInterceptedException
 import requests
 import xlsxwriter
 from bs4 import BeautifulSoup
@@ -88,7 +90,7 @@ CPU_URL = 'https://pcpartpicker.com/products/cpu/'
 
 
 # Function to get all the raw data from a URL, return a BS4 object
-def get_raw_data(URL):
+def get_raw_data(URL, min_conf):
     # ___________________________ Selenium options ____________________
     ua = UserAgent()
     random_user_agent = ua.random  # Get a random user-agent
@@ -121,18 +123,45 @@ def get_raw_data(URL):
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
     time.sleep(5)  # Allow time for JavaScript to load
 
+    # parametric_add_button
+    filter_btn = driver.find_element(By.XPATH,
+                                     '//*[@id="products"]/div[4]/div[1]/div[2]/section/div/div[1]/div/div[1]/a[1]')
+    filter_btn.click()
+
+    # TODO - Generalize the filtering function for other components.
+    clickable = False
+    while not clickable:
+        try:
+            min_core = driver.find_element(By.CSS_SELECTOR, '#filter_slide_C .obj-filter-slide-left a')
+            min_core.click()
+            clickable = True
+        except ElementClickInterceptedException:
+            print('Scrolling')
+            driver.execute_script("document.querySelector('.offCanvas__content').scrollBy(0, 500);")
+    min_core = driver.find_element(By.CSS_SELECTOR, '#filter_slide_C .obj-filter-slide-left input')
+    min_core.send_keys(min_conf.cpu.core)
+
+    # TODO - To update
+    clock_speed = driver.find_element(By.XPATH, '//*[@id="filter_slide_A"]/div[1]/div[1]/a')
+    clock_speed.click()
+    clock_speed.send_keys(min_conf.cpu.clock_speed)
+
+    thread_nb = driver.find_element(By.XPATH, '//*[@id="filter_slide_th"]/div[1]/div[1]/a')
+    thread_nb.click()
+    thread_nb.send_keys(min_conf.cpu.thread)
+
     # Parse the page
     soup = BeautifulSoup(driver.page_source, "html.parser")
     # Find all rows in the CPU table
     raw_data = soup.find_all("tr", class_="tr__product")
 
-    driver.close()
+    #driver.close()
     return raw_data
 
 
 # Extract the information of CPUs from the webpage
-def get_CPU_data():
-    cpu_rows = get_raw_data(CPU_URL)
+def get_CPU_data(min_conf):
+    cpu_rows = get_raw_data(CPU_URL, min_conf)
     cpu_name = [str(data)[int(str(data).find('<div class="td__nameWrapper"> <p>') + 33):str(data).find(
         '</p> <div class="td__rating"')] for data in cpu_rows]
     cpu_core = [int(str(data)[int(str(data).find('Core Count</h6>') + 15):str(data).find('Core Count</h6>') + 16]) for
@@ -145,7 +174,7 @@ def get_CPU_data():
 
 
 # Get the min configuration from the file
-def get_min_para():
+def get_min_para():  # TODO - Fix the function, doesn't get the info from XLS file
     # HERE
     min_conf = Computer()  # Create a computer object to store the para
 
@@ -156,7 +185,6 @@ def get_min_para():
     for pc_comp in vars(min_conf):  # Filling all component with the Computer object
         try:
             # Get the component title
-            # print(getattr(min_conf, object).title)
             comp = getattr(min_conf, pc_comp).title
             # Link with the component name in dict element
             comp_name = ''
@@ -204,9 +232,9 @@ def get_min_para():
 
 # Create a computer object with min para in XLS file
 min_conf = get_min_para()
-
+print(min_conf.cpu.core)
 # TODO Filter the retrieved info int cpu_info with min configuration
 
-cpu_info = get_CPU_data()
+cpu_info = get_CPU_data(min_conf)
 print(cpu_info)
 #workbook.close()
