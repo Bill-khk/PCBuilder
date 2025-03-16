@@ -11,6 +11,20 @@ class Computer:
         self.check = True
         self.price = int
 
+    def __str__(self):
+        components = []
+        for component_name in dir(self):
+            if not component_name.startswith("__"):  # Ignore built-in attributes
+                component = getattr(self, component_name)
+                if isinstance(component, (CPU, GPU, Motherboard, Power, RAM, Memory)):  # Check if it's a known component
+                    component_details = f"{component_name}:"
+                    for attr_name in dir(component):
+                        if not attr_name.startswith("__") and not callable(getattr(component, attr_name)):
+                            attr_value = getattr(component, attr_name)
+                            component_details += f"{attr_name}: {attr_value}, "
+                    components.append(component_details)
+        return "\n".join(components)
+
     def check_comp(self):
         if self.cpu.socket != self.motherboard.socket:
             self.check = False

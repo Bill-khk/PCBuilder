@@ -142,13 +142,13 @@ def get_raw_data(URL, min_conf):
     min_core.send_keys(min_conf.cpu.core)
 
     # TODO - To update
-    clock_speed = driver.find_element(By.XPATH, '//*[@id="filter_slide_A"]/div[1]/div[1]/a')
-    clock_speed.click()
-    clock_speed.send_keys(min_conf.cpu.clock_speed)
-
-    thread_nb = driver.find_element(By.XPATH, '//*[@id="filter_slide_th"]/div[1]/div[1]/a')
-    thread_nb.click()
-    thread_nb.send_keys(min_conf.cpu.thread)
+    # clock_speed = driver.find_element(By.XPATH, '//*[@id="filter_slide_A"]/div[1]/div[1]/a')
+    # clock_speed.click()
+    # clock_speed.send_keys(min_conf.cpu.clock_speed)
+    #
+    # thread_nb = driver.find_element(By.XPATH, '//*[@id="filter_slide_th"]/div[1]/div[1]/a')
+    # thread_nb.click()
+    # thread_nb.send_keys(min_conf.cpu.thread)
 
     # Parse the page
     soup = BeautifulSoup(driver.page_source, "html.parser")
@@ -237,4 +237,5 @@ print(min_conf.cpu.core)
 
 cpu_info = get_CPU_data(min_conf)
 print(cpu_info)
+
 #workbook.close()
