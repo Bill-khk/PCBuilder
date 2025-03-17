@@ -174,7 +174,7 @@ def get_CPU_data(min_conf):
 
 
 # Get the min configuration from the file
-def get_min_para():  # TODO - Fix the function, doesn't get the info from XLS file
+def get_min_xls_conf():  #
     # HERE
     min_conf = Computer()  # Create a computer object to store the para
 
@@ -209,14 +209,15 @@ def get_min_para():  # TODO - Fix the function, doesn't get the info from XLS fi
                     y = str(int(y) + 1)
                 # Associating the name of the parameters with its vales
                 min_para = [(name, value) for name, value in zip(para, para_value)]
-                print(min_para)
+                # print(min_para) # To use to see data retrieved from XLS before being put in the min_conf object
 
                 # Put the min_para in min_conf
                 for attr in dir(getattr(min_conf, pc_comp)):
                     if not attr.startswith("__") and attr not in ["title", "price", "link"] and type(attr) != bool:
                         for key, value in min_para:
                             if key == attr:
-                                getattr(min_conf, pc_comp).attr = value
+                                setattr(getattr(min_conf, pc_comp), attr, value)
+
 
             else:
                 print(f'Cant find {comp} in dict element')
@@ -231,10 +232,10 @@ def get_min_para():  # TODO - Fix the function, doesn't get the info from XLS fi
 
 
 # Create a computer object with min para in XLS file
-min_conf = get_min_para()
+min_conf = get_min_xls_conf()
 print(min_conf.cpu.core)
-# TODO Filter the retrieved info int cpu_info with min configuration
 
+# TODO Filter the retrieved info int cpu_info with min configuration
 cpu_info = get_CPU_data(min_conf)
 print(cpu_info)
 
