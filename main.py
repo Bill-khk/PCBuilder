@@ -129,26 +129,24 @@ def get_raw_data(URL, min_conf):
     filter_btn.click()
 
     # TODO - Generalize the filtering function for other components.
-    clickable = False
-    while not clickable:
-        try:
-            min_core = driver.find_element(By.CSS_SELECTOR, '#filter_slide_C .obj-filter-slide-left a')
-            min_core.click()
-            clickable = True
-        except ElementClickInterceptedException:
-            print('Scrolling')
-            driver.execute_script("document.querySelector('.offCanvas__content').scrollBy(0, 500);")
-    min_core = driver.find_element(By.CSS_SELECTOR, '#filter_slide_C .obj-filter-slide-left input')
-    min_core.send_keys(min_conf.cpu.core)
+    for selector, conf in [("C", "core"), ("th", "thread"), ("A", "clock_speed")]:
+        clickable = False
+        div_filter = "#filter_slide_"
+        left_filter = ".obj-filter-slide-left"
+        while not clickable:
+            try:
+                web_conf_clickable = driver.find_element(By.CSS_SELECTOR, f'{div_filter}{selector} {left_filter} a')
+                web_conf_clickable.click()
+                clickable = True
+            except ElementClickInterceptedException:
+                print('Scrolling')
+                driver.execute_script("document.querySelector('.offCanvas__content').scrollBy(0, 500);")
+        web_conf_input = driver.find_element(By.CSS_SELECTOR, f'{div_filter}{selector} {left_filter} input')
+        web_conf_input.send_keys(getattr(min_conf.cpu, conf))  # To render dynamic
 
-    # TODO - To update
-    # clock_speed = driver.find_element(By.XPATH, '//*[@id="filter_slide_A"]/div[1]/div[1]/a')
-    # clock_speed.click()
-    # clock_speed.send_keys(min_conf.cpu.clock_speed)
-    #
-    # thread_nb = driver.find_element(By.XPATH, '//*[@id="filter_slide_th"]/div[1]/div[1]/a')
-    # thread_nb.click()
-    # thread_nb.send_keys(min_conf.cpu.thread)
+    web_hide_filter = driver.find_element(By.XPATH, '//*[@id="products"]/div[4]/div[1]/div[2]/section/div/div[1]/div/div[2]/header/nav/div/div/a')
+    web_hide_filter.click()
+    #TODO - Get new URL post filter, generate the page and put into driver
 
     # Parse the page
     soup = BeautifulSoup(driver.page_source, "html.parser")
@@ -233,7 +231,6 @@ def get_min_xls_conf():  #
 
 # Create a computer object with min para in XLS file
 min_conf = get_min_xls_conf()
-print(min_conf.cpu.core)
 
 # TODO Filter the retrieved info int cpu_info with min configuration
 cpu_info = get_CPU_data(min_conf)
