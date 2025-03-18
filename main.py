@@ -90,7 +90,8 @@ CPU_URL = 'https://pcpartpicker.com/products/cpu/'
 
 
 # Function to get all the raw data from a URL, return a BS4 object
-def get_raw_data(URL, min_conf):
+def get_raw_data(URL, computer_obj):
+    print('-----Getting online data')
     # ___________________________ Selenium options ____________________
     ua = UserAgent()
     random_user_agent = ua.random  # Get a random user-agent
@@ -123,12 +124,11 @@ def get_raw_data(URL, min_conf):
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
     time.sleep(5)  # Allow time for JavaScript to load
 
-    # parametric_add_button
+    print('-----Filtering')
+    # Filter website results with XLS configuration
     filter_btn = driver.find_element(By.XPATH,
                                      '//*[@id="products"]/div[4]/div[1]/div[2]/section/div/div[1]/div/div[1]/a[1]')
     filter_btn.click()
-
-    # TODO - Generalize the filtering function for other components.
     for selector, conf in [("C", "core"), ("th", "thread"), ("A", "clock_speed")]:
         clickable = False
         div_filter = "#filter_slide_"
@@ -142,12 +142,12 @@ def get_raw_data(URL, min_conf):
                 print('Scrolling')
                 driver.execute_script("document.querySelector('.offCanvas__content').scrollBy(0, 500);")
         web_conf_input = driver.find_element(By.CSS_SELECTOR, f'{div_filter}{selector} {left_filter} input')
-        web_conf_input.send_keys(getattr(min_conf.cpu, conf))  # To render dynamic
+        web_conf_input.send_keys(getattr(computer_obj.cpu, conf))  # To render dynamic
 
-    web_hide_filter = driver.find_element(By.XPATH, '//*[@id="products"]/div[4]/div[1]/div[2]/section/div/div[1]/div/div[2]/header/nav/div/div/a')
+    web_hide_filter = driver.find_element(By.XPATH,
+                                          '//*[@id="products"]/div[4]/div[1]/div[2]/section/div/div[1]/div/div[2]/header/nav/div/div/a')
     web_hide_filter.click()
-    #TODO - Get new URL post filter, generate the page and put into driver
-
+    driver.get(driver.current_url)  # Getting filtered URL
     # Parse the page
     soup = BeautifulSoup(driver.page_source, "html.parser")
     # Find all rows in the CPU table
@@ -158,12 +158,19 @@ def get_raw_data(URL, min_conf):
 
 
 # Extract the information of CPUs from the webpage
-def get_CPU_data(min_conf):
-    cpu_rows = get_raw_data(CPU_URL, min_conf)
+# TODO add socket, Boost speed, thread and link
+def get_CPU_data(computer_obj):
+    print('----------Getting online data for CPU----------')
+    cpu_rows = get_raw_data(CPU_URL, computer_obj)
     cpu_name = [str(data)[int(str(data).find('<div class="td__nameWrapper"> <p>') + 33):str(data).find(
         '</p> <div class="td__rating"')] for data in cpu_rows]
-    cpu_core = [int(str(data)[int(str(data).find('Core Count</h6>') + 15):str(data).find('Core Count</h6>') + 16]) for
+    # cpu_core = [int(str(data)[int(str(data).find('Core Count</h6>') + 15):str(data).find('Core Count</h6>') + 16]) for
+    #             data in cpu_rows]
+
+    cpu_core = [int(str(data)[int(str(data).find('Core Count</h6>') + 15):str(data).find(
+        '</td> <td class="td__spec td__spec--2">')]) for
                 data in cpu_rows]
+
     cpu_perf = [float(str(data)[int(str(data).find('Performance Core Clock</h6>') + 27):str(data).find(
         'GHz</td> <td class="td__spec td__spec--3')]) for data in cpu_rows]
     cpu_price = [str(data)[int(str(data).find('<td class="td__price">') + 23):str(data).find(
@@ -171,9 +178,14 @@ def get_CPU_data(min_conf):
     return [cpu_name, cpu_core, cpu_perf, cpu_price]
 
 
+# TODO
+def get_GPU_data(computer_obj):
+    pass
+
+
 # Get the min configuration from the file
 def get_min_xls_conf():  #
-    # HERE
+    print('----------Retrieving minimum configuration from XLS...----------')
     min_conf = Computer()  # Create a computer object to store the para
 
     # Open the XLS file only once
@@ -223,17 +235,16 @@ def get_min_xls_conf():  #
 
         except AttributeError:
             print(f'{pc_comp} is not a component')
-
-    print(min_conf)
+    print('------------------------------')
+    print(f'Min conf retrieved from XLS :\n{min_conf}')
     wb.close()
     return min_conf
 
 
-# Create a computer object with min para in XLS file
+# Create a computer object and put XLS info
 min_conf = get_min_xls_conf()
-
-# TODO Filter the retrieved info int cpu_info with min configuration
+# Use the created computer to filter online info
 cpu_info = get_CPU_data(min_conf)
-print(cpu_info)
+print(f'Retrieved data from URL :\n{cpu_info}')
 
 #workbook.close()
