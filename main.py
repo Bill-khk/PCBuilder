@@ -15,55 +15,13 @@ import xlwings as xw
 from computer import Computer
 
 comp_dict = {
-    'cpu_tab': {
-        'Title': 'Processor',
-        'Init_add': 'A5',
-        'Parameters': ['name', 'socket', 'core', 'clock_speed', 'boost_speed', 'thread', 'price', 'link'],
-        'value': []
-    },
-    'mb_tab': {
-        'Title': 'Motherboard',
-        'Init_add': 'A15',
-        'Parameters': ['name', 'socket', 'maxMemory', 'slotMemory', 'DDRtype', 'PCIe', 'USB2', 'USB3',
-                       'Price', 'Link'],
-        'value': []
-    },
-    'gpu_tab': {
-        'Title': 'Graphic card',
-        'Init_add': 'A28',
-        'Parameters': ['name', 'memory', 'memoryType', 'clock_speed', 'interface', 'cooling', 'price', 'link'],
-        'value': []
-    },
-    'ram_tab': {
-        'Title': 'RAM',
-        'Init_add': 'G1',
-        'Parameters': ['name', 'DDRtype', 'speed', 'module_nb', 'price', 'link'],
-        'value': []
-    },
-    'memory_tab': {
-        'Title': 'Memory',
-        'Init_add': 'L1',
-        'Parameters': ['name', 'capacity', 'type', 'NVME', 'price', 'link'],
-        'value': []
-    },
-    'power_tab': {
-        'Title': 'Power supply',
-        'Init_add': 'P1',
-        'Parameters': ['name', 'type', 'wattage', 'length', 'price', 'link'],
-        'value': []
-    },
-    'case_tab': {
-        'Title': 'Case',
-        'Init_add': 'T1',
-        'Parameters': ['name', 'dimensions', 'price', 'link'],
-        'value': []
-    },
     'component': {
         'Title': 'Component',
         'Init_add': 'U8',
         'Parameters': ['Processor', 'Motherboard', 'Graphic card', 'RAM', 'Memory', 'Power supply', 'Case'],
         'value': []
-    }}
+    }
+}
 
 # Create XLS output file
 # date = date.today()
@@ -184,12 +142,13 @@ def get_GPU_data(computer_obj):
         '</p> <div class="td__rating"')] for data in data_rows]
     gpu_ram = [int(str(data)[int(str(data).find('Memory</h6>') + 11):str(data).find(
         ' GB</td> <td class="td__spec td__spec--3">')]) for
-                data in data_rows]
+               data in data_rows]
     gpu_perf = [int(str(data)[int(str(data).find('Core Clock</h6>') + 15):str(data).find(
         ' MHz</td> <td class="td__spec td__spec--4')]) for data in data_rows]
     gpu_price = [str(data)[int(str(data).find('<td class="td__price">') + 23):str(data).find(
         '<button class="td__add button button--small')] for data in data_rows]
     return [gpu_name, gpu_ram, gpu_perf, gpu_price]
+
 
 # Get the min configuration from the file
 def get_min_xls_conf():  #
@@ -202,42 +161,15 @@ def get_min_xls_conf():  #
 
     for pc_comp in vars(min_conf):  # Filling all component with the Computer object
         try:
-            # Get the component title
-            comp = getattr(min_conf, pc_comp).title
-            # Link with the component name in dict element
-            comp_name = ''
-            for element in comp_dict:
-                if comp_dict[element]['Title'] == comp:
-                    comp_name = element
-            # print(comp_name)  # Element got in the dict element
-            # If comp_name is still empty, could find the match between computer component and dict element
-            if comp_name != '':
-                # Get the list of component's parameters as per the dict element
-                para = [value for value in comp_dict[comp_name]['Parameters']]
-                para = para[:len(para) - 1]  # Remove link
-
-                # get the coordinate of parameter
-                x = chr(ord(comp_dict[comp_name]['Init_add'][:1]) + 1)
-                y = str(int(comp_dict[comp_name]['Init_add'][1:]) + 1)
-
-                # Store the values retrieved
-                para_value = []
-                for value in para:
-                    para_value.append(ws.range(x + y).value)
+            # Get the cell of the XLS where the data are for the given component
+            cell = getattr(min_conf, pc_comp).init_add
+            x = chr(ord(cell[:1]) + 1)
+            y = str(int(cell[1:]) + 1)
+            for attr in dir(getattr(min_conf, pc_comp)):
+                if not attr.startswith("__") and attr not in ["title", "init_add", "price", "link"] and type(
+                        attr) != bool:
+                    setattr(getattr(min_conf, pc_comp), attr, ws.range(x + y).value)
                     y = str(int(y) + 1)
-                # Associating the name of the parameters with its vales
-                min_para = [(name, value) for name, value in zip(para, para_value)]
-                # print(min_para) # To use to see data retrieved from XLS before being put in the min_conf object
-
-                # Put the min_para in min_conf
-                for attr in dir(getattr(min_conf, pc_comp)):
-                    if not attr.startswith("__") and attr not in ["title", "price", "link"] and type(attr) != bool:
-                        for key, value in min_para:
-                            if key == attr:
-                                setattr(getattr(min_conf, pc_comp), attr, value)
-            else:
-                print(f'Cant find {comp} in dict element')
-                return None
 
         except AttributeError:
             print(f'{pc_comp} is not a component')
@@ -251,7 +183,7 @@ def get_min_xls_conf():  #
 min_conf = get_min_xls_conf()
 # Use the created computer to filter online info
 #cpu_info = get_CPU_data(min_conf)
-gpu_info = get_GPU_data(min_conf)
-print(f'Retrieved data from URL :\n{gpu_info}')
+#gpu_info = get_GPU_data(min_conf)
+#print(f'Retrieved data from URL :\n{gpu_info}')
 
 #workbook.close()

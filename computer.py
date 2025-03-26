@@ -42,6 +42,7 @@ class Computer:
 class CPU:
     def __init__(self):
         self.title = 'Processor'
+        self.init_add = 'A5'
         self.name = ''
         self.socket = ''
         self.core = 1
@@ -55,6 +56,7 @@ class CPU:
 class GPU:
     def __init__(self):
         self.title = 'Graphic card'
+        self.init_add = 'A28'
         self.name = ''
         self.memory = 1
         self.memoryType = 1
@@ -68,6 +70,7 @@ class GPU:
 class RAM:
     def __init__(self):
         self.title = 'RAM'
+        self.init_add = 'G1'
         self.name = ''
         self.DDRtype = 1
         self.speed = 1
@@ -80,6 +83,7 @@ class RAM:
 class Memory:
     def __init__(self):
         self.title = 'Memory'
+        self.init_add = 'L1'
         self.name = str
         self.capacity = int
         self.type = str
@@ -91,6 +95,7 @@ class Memory:
 class Power:
     def __init__(self):
         self.title = 'Power supply'
+        self.init_add = 'P1'
         self.name = str
         self.type = str
         self.wattage = int
@@ -102,6 +107,7 @@ class Power:
 class Case:
     def __init__(self):
         self.title = 'Case'
+        self.init_add = 'T1'
         self.name = str
         self.dimension = {int, int, int}  # l x w x h
         self.price = int
@@ -111,6 +117,7 @@ class Case:
 class Motherboard:
     def __init__(self):
         self.title = 'Motherboard'
+        self.init_add = 'A15'
         self.name = str
         self.socket = str
         self.core = int
