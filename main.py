@@ -134,7 +134,6 @@ def get_CPU_data(computer_obj):
         '<button class="td__add button button--small')] for data in data_rows]
     return [cpu_name, cpu_core, cpu_perf, cpu_price]
 
-
 def get_GPU_data(computer_obj):
     print('----------Getting online data for GPU----------')
     data_rows = get_raw_data(GPU_URL, computer_obj)
