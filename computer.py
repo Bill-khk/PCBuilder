@@ -16,12 +16,16 @@ class Computer:
         for component_name in dir(self):
             if not component_name.startswith("__"):  # Ignore built-in attributes
                 component = getattr(self, component_name)
-                if isinstance(component, (CPU, GPU, Motherboard, Power, RAM, Memory)):  # Check if it's a known component
-                    component_details = f"{component_name}:"
+                if isinstance(component,
+                              (CPU, GPU, Motherboard, Power, RAM, Memory)):  # Check if it's a known component
+                    component_details = f"[{component_name}]: "
                     for attr_name in dir(component):
                         if not attr_name.startswith("__") and not callable(getattr(component, attr_name)):
                             attr_value = getattr(component, attr_name)
-                            component_details += f"{attr_name}: {attr_value}, "
+                            if isinstance(attr_value, list):  # Hide item to search in HTML
+                                component_details += f"{attr_name}: {attr_value[0]}, "
+                            else:
+                                component_details += f"{attr_name}: {attr_value}, "
                     components.append(component_details)
         return "\n".join(components)
 
@@ -39,32 +43,35 @@ class Computer:
     def total_price(self):
         self.price = sum(getattr(self, component).price for component in self.__dict__)
 
+
 class CPU:
     def __init__(self):
         self.title = 'Processor'
         self.init_add = 'A5'
-        self.name = ''
+        self.name = ['', '<div class="td__nameWrapper"> <p>', '</p> <div class="td__rating"', 'str']
         self.socket = ''
-        self.core = 1
-        self.clock_speed = 1
+        self.core = [1, 'Core Count</h6>', '</td> <td class="td__spec td__spec--2">', 'int']
+        self.clock_speed = [1, '</td> <td class="td__spec td__spec--2">', 'GHz</td> <td class="td__spec td__spec--3', 'float']
         self.boost_speed = 1
         self.thread = 1
-        self.price = 0
+        self.price = [0, '<td class="td__price">$', '<button class="td__add button button--small', 'str']
         self.link = ''
+        self.url = 'https://pcpartpicker.com/products/cpu/'
 
 
 class GPU:
     def __init__(self):
         self.title = 'Graphic card'
         self.init_add = 'A28'
-        self.name = ''
-        self.memory = 1
+        self.name = ['', '<div class="td__nameWrapper"> <p>', '</p> <div class="td__rating"', 'str']
+        self.memory = [1, 'Memory</h6>', ' GB</td> <td class="td__spec td__spec--3">', 'int']
         self.memoryType = 1
-        self.clock_speed = 1
+        self.clock_speed = [1, 'Core Clock</h6>', ' MHz</td> <td class="td__spec td__spec--4', 'int']
         self.interface = ''
         self.cooling = 0
-        self.price = 0
+        self.price = [0, '<td class="td__price">', '<button class="td__add button button--small', 'str']
         self.link = ''
+        self.url = 'https://pcpartpicker.com/products/video-card/'
 
 
 class RAM:
@@ -129,4 +136,3 @@ class Motherboard:
         self.USB3 = int
         self.price = int
         self.link = str
-

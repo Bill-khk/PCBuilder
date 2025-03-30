@@ -46,7 +46,7 @@ comp_dict = {
 CPU_URL = 'https://pcpartpicker.com/products/cpu/'
 GPU_URL = 'https://pcpartpicker.com/products/video-card/'
 
-
+# TODO Change to get the data from component URL
 # Function to get all the raw data from a URL, return a BS4 object
 def get_raw_data(URL, computer_obj):
     print('-----Getting online data')
@@ -128,11 +128,12 @@ def get_CPU_data(computer_obj):
     cpu_core = [int(str(data)[int(str(data).find('Core Count</h6>') + 15):str(data).find(
         '</td> <td class="td__spec td__spec--2">')]) for
                 data in data_rows]
-    cpu_perf = [float(str(data)[int(str(data).find('Performance Core Clock</h6>') + 27):str(data).find(
+    cpu_perf = [float(str(data)[int(str(data).find('</td> <td class="td__spec td__spec--2">') + 27):str(data).find(
         'GHz</td> <td class="td__spec td__spec--3')]) for data in data_rows]
     cpu_price = [str(data)[int(str(data).find('<td class="td__price">$') + 23):str(data).find(
         '<button class="td__add button button--small')] for data in data_rows]
     return [cpu_name, cpu_core, cpu_perf, cpu_price]
+
 
 def get_GPU_data(computer_obj):
     print('----------Getting online data for GPU----------')
@@ -149,6 +150,11 @@ def get_GPU_data(computer_obj):
     return [gpu_name, gpu_ram, gpu_perf, gpu_price]
 
 
+def get_online_data_generic(computer_obj):
+    print('----------Getting online data----------')
+    data_rows = get_raw_data(GPU_URL, computer_obj)
+
+
 # Get the min configuration from the file
 def get_min_xls_conf():  #
     print('----------Retrieving minimum configuration from XLS...----------')
@@ -157,17 +163,20 @@ def get_min_xls_conf():  #
     # Open the XLS file only once
     wb = xw.Book("Files/min_conf.xlsx")
     ws = wb.sheets['Overview']
-
     for pc_comp in vars(min_conf):  # Filling all component with the Computer object
         try:
-            # Get the cell of the XLS where the data are for the given component
+        # Get the cell of the XLS where the data are for the given component
             cell = getattr(min_conf, pc_comp).init_add
             x = chr(ord(cell[:1]) + 1)
             y = str(int(cell[1:]) + 1)
             for attr in dir(getattr(min_conf, pc_comp)):
-                if not attr.startswith("__") and attr not in ["title", "init_add", "price", "link"] and type(
+                if not attr.startswith("__") and attr not in ["title", "init_add", "price", "link", "url"] and type(
                         attr) != bool:
-                    setattr(getattr(min_conf, pc_comp), attr, ws.range(x + y).value)
+                    # attr = clock_speed with type 'str' where getattr is the value with type 'list'
+                    if isinstance(getattr(getattr(min_conf, pc_comp), attr), list):
+                        setattr(getattr(min_conf, pc_comp), attr[0], ws.range(x + y).value)
+                    else:
+                        setattr(getattr(min_conf, pc_comp), attr, ws.range(x + y).value)
                     y = str(int(y) + 1)
 
         except AttributeError:
@@ -179,9 +188,11 @@ def get_min_xls_conf():  #
 
 
 # Create a computer object and put XLS info
+
 min_conf = get_min_xls_conf()
-# Use the created computer to filter online info
-#cpu_info = get_CPU_data(min_conf)
+data = get_raw_data(CPU_URL, min_conf) #TODO to modify
+
+#cpu_info = get_online_data_generic(min_conf)
 #gpu_info = get_GPU_data(min_conf)
 #print(f'Retrieved data from URL :\n{gpu_info}')
 
