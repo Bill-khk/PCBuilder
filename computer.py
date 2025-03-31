@@ -50,10 +50,10 @@ class CPU:
         self.init_add = 'A5'
         self.name = ['', '<div class="td__nameWrapper"> <p>', '</p> <div class="td__rating"', 'str']
         self.socket = ''
-        self.core = [1, 'Core Count</h6>', '</td> <td class="td__spec td__spec--2">', 'int']
-        self.clock_speed = [1, '</td> <td class="td__spec td__spec--2">', 'GHz</td> <td class="td__spec td__spec--3', 'float']
+        self.core = [1, 'Core Count</h6>', '</td> <td class="td__spec td__spec--2">', 'int', 'filter:C'] # Last value is the tag for filtering
+        self.clock_speed = [1, '</td> <td class="td__spec td__spec--2">', 'GHz</td> <td class="td__spec td__spec--3', 'float', 'filter:A']
         self.boost_speed = 1
-        self.thread = 1
+        self.thread = [1, 'filter:th']
         self.price = [0, '<td class="td__price">$', '<button class="td__add button button--small', 'str']
         self.link = ''
         self.url = 'https://pcpartpicker.com/products/cpu/'

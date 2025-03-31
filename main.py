@@ -48,7 +48,7 @@ GPU_URL = 'https://pcpartpicker.com/products/video-card/'
 
 # TODO Change to get the data from component URL
 # Function to get all the raw data from a URL, return a BS4 object
-def get_raw_data(URL, computer_obj):
+def get_raw_data(computer_comp):
     print('-----Getting online data')
     # ___________________________ Selenium options ____________________
     ua = UserAgent()
@@ -76,37 +76,46 @@ def get_raw_data(URL, computer_obj):
             )
 
     # Open the website
-    driver.get(URL)
+    driver.get(computer_comp.url)
 
     # Disable navigator.webdriver detection
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
     time.sleep(5)  # Allow time for JavaScript to load
 
     print('-----Filtering')
-    filtering = False
+    filtering = True
     if filtering:
         # Filter website results with XLS configuration
         filter_btn = driver.find_element(By.XPATH,
                                          '//*[@id="products"]/div[4]/div[1]/div[2]/section/div/div[1]/div/div[1]/a[1]')
         filter_btn.click()
-        for selector, conf in [("C", "core"), ("th", "thread"), ("A", "clock_speed")]:
-            clickable = False
-            div_filter = "#filter_slide_"
-            left_filter = ".obj-filter-slide-left"
-            while not clickable:
-                try:
-                    web_conf_clickable = driver.find_element(By.CSS_SELECTOR, f'{div_filter}{selector} {left_filter} a')
-                    web_conf_clickable.click()
-                    clickable = True
-                except ElementClickInterceptedException:
-                    print('Scrolling')
-                    driver.execute_script("document.querySelector('.offCanvas__content').scrollBy(0, 500);")
-            web_conf_input = driver.find_element(By.CSS_SELECTOR, f'{div_filter}{selector} {left_filter} input')
-            web_conf_input.send_keys(getattr(computer_obj.cpu, conf))  # To render dynamic
 
-        web_hide_filter = driver.find_element(By.XPATH,
-                                              '//*[@id="products"]/div[4]/div[1]/div[2]/section/div/div[1]/div/div[2]/header/nav/div/div/a')
-        web_hide_filter.click()
+        for attr in dir(computer_comp):
+            if not attr.startswith("__"):
+                if isinstance(attr, list):
+                    for attr_value in attr:
+                        if 'filter' in attr_value:
+                            print(attr)
+        # TODO create a version where the filter are embedded within the component class
+
+        # for selector, conf in [("C", "core"), ("th", "thread"), ("A", "clock_speed")]:
+        #     clickable = False
+        #     div_filter = "#filter_slide_"
+        #     left_filter = ".obj-filter-slide-left"
+        #     while not clickable:
+        #         try:
+        #             web_conf_clickable = driver.find_element(By.CSS_SELECTOR, f'{div_filter}{selector} {left_filter} a')
+        #             web_conf_clickable.click()
+        #             clickable = True
+        #         except ElementClickInterceptedException:
+        #             print('Scrolling')
+        #             driver.execute_script("document.querySelector('.offCanvas__content').scrollBy(0, 500);")
+        #     web_conf_input = driver.find_element(By.CSS_SELECTOR, f'{div_filter}{selector} {left_filter} input')
+        #     web_conf_input.send_keys(getattr(computer_comp, conf))  # To render dynamic
+        #
+        # web_hide_filter = driver.find_element(By.XPATH,
+        #                                       '//*[@id="products"]/div[4]/div[1]/div[2]/section/div/div[1]/div/div[2]/header/nav/div/div/a')
+        # web_hide_filter.click()
         driver.get(driver.current_url)  # Getting filtered URL
 
     # Parse the page
@@ -190,7 +199,7 @@ def get_min_xls_conf():  #
 # Create a computer object and put XLS info
 
 min_conf = get_min_xls_conf()
-data = get_raw_data(CPU_URL, min_conf) #TODO to modify
+data = get_raw_data(min_conf.cpu) #TODO to modify
 
 #cpu_info = get_online_data_generic(min_conf)
 #gpu_info = get_GPU_data(min_conf)
